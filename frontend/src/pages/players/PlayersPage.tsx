@@ -1,5 +1,5 @@
-import { Edit2, Plus, Trash2, Volleyball } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Edit2, Plus, Search, Trash2, Volleyball } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { type Team, getTeamsService } from "../../services/liga/teams.service";
 import {
@@ -11,6 +11,7 @@ import {
 } from "../../services/liga/players.service";
 import { useAuthStore } from "../../store/auth.store";
 
+const CATEGORIES = ["SUB-8", "SUB-10", "SUB-12", "SUB-14", "SUB-16", "SUB-18", "SUB-20", "PRIMERA"];
 const STATUSES = ["ACTIVO", "INACTIVO", "SUSPENDIDO", "TRANSFERIDO"];
 const DOC_TYPES = ["CC", "TI", "CE", "PASAPORTE"];
 const POSITIONS = ["Portero", "Defensa", "Mediocampista", "Delantero"];
@@ -40,6 +41,38 @@ export default function PlayersPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [filterClub, setFilterClub] = useState("");
+  const [filterTeam, setFilterTeam] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
+  const clubs = useMemo(() => {
+    const seen = new Set<string>();
+    return teams
+      .filter((t) => t.club_id && t.club_name && !seen.has(t.club_id) && seen.add(t.club_id))
+      .map((t) => ({ id: t.club_id!, name: t.club_name! }));
+  }, [teams]);
+
+  const teamsByClub = useMemo(() =>
+    filterClub ? teams.filter((t) => t.club_id === filterClub) : teams,
+  [teams, filterClub]);
+
+  const filtered = useMemo(() => {
+    const teamIdsByClub = new Set(teamsByClub.map((t) => t.team_id));
+    const q = search.toLowerCase();
+    return players.filter((p) => {
+      if (q && !`${p.first_name} ${p.last_name} ${p.document_number}`.toLowerCase().includes(q)) return false;
+      if (filterClub && !teamIdsByClub.has(p.team_id ?? "")) return false;
+      if (filterTeam && p.team_id !== filterTeam) return false;
+      if (filterCategory && p.category !== filterCategory) return false;
+      if (filterStatus && p.status !== filterStatus) return false;
+      return true;
+    });
+  }, [players, search, filterClub, filterTeam, filterCategory, filterStatus, teamsByClub]);
+
+  const clearFilters = () => { setSearch(""); setFilterClub(""); setFilterTeam(""); setFilterCategory(""); setFilterStatus(""); };
 
   const load = () =>
     Promise.all([getPlayersService(), getTeamsService()])
@@ -98,6 +131,47 @@ export default function PlayersPage() {
         )}
       </div>
 
+      {/* Filtros */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="relative lg:col-span-2">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre o documento..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green"
+          />
+        </div>
+        <select value={filterClub} onChange={(e) => { setFilterClub(e.target.value); setFilterTeam(""); }}
+          className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
+          <option value="">Todos los clubes</option>
+          {clubs.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select value={filterTeam} onChange={(e) => setFilterTeam(e.target.value)}
+          className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
+          <option value="">Todos los equipos</option>
+          {teamsByClub.map((t) => <option key={t.team_id} value={t.team_id}>{t.name}</option>)}
+        </select>
+        <div className="flex gap-2">
+          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}
+            className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
+            <option value="">Categoría</option>
+            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+            className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
+            <option value="">Estado</option>
+            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        {(search || filterClub || filterTeam || filterCategory || filterStatus) && (
+          <button onClick={clearFilters} className="lg:col-span-5 text-xs text-liga-green hover:underline text-right">
+            Limpiar filtros — mostrando {filtered.length} de {players.length} jugadores
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-10 w-10 border-4 border-liga-green border-t-transparent" /></div>
       ) : (
@@ -114,10 +188,12 @@ export default function PlayersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {players.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">Sin jugadores registrados</td></tr>
+              {filtered.length === 0 && (
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400">
+                  {players.length === 0 ? "Sin jugadores registrados" : "No se encontraron jugadores con los filtros aplicados"}
+                </td></tr>
               )}
-              {players.map((player) => (
+              {filtered.map((player) => (
                 <tr key={player.player_id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
