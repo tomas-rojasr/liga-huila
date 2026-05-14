@@ -132,8 +132,9 @@ export default function PlayersPage() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="relative lg:col-span-2">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 space-y-3">
+        {/* Fila 1: búsqueda */}
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -143,32 +144,34 @@ export default function PlayersPage() {
             className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green"
           />
         </div>
-        <select value={filterClub} onChange={(e) => { setFilterClub(e.target.value); setFilterTeam(""); }}
-          className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
-          <option value="">Todos los clubes</option>
-          {clubs.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select value={filterTeam} onChange={(e) => setFilterTeam(e.target.value)}
-          className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
-          <option value="">Todos los equipos</option>
-          {teamsByClub.map((t) => <option key={t.team_id} value={t.team_id}>{t.name}</option>)}
-        </select>
-        <div className="flex gap-2">
+        {/* Fila 2: dropdowns */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <select value={filterClub} onChange={(e) => { setFilterClub(e.target.value); setFilterTeam(""); }}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green truncate">
+            <option value="">Todos los clubes</option>
+            {clubs.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <select value={filterTeam} onChange={(e) => setFilterTeam(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green truncate">
+            <option value="">Todos los equipos</option>
+            {teamsByClub.map((t) => <option key={t.team_id} value={t.team_id}>{t.name}</option>)}
+          </select>
           <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
             <option value="">Categoría</option>
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-liga-green">
             <option value="">Estado</option>
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
         {(search || filterClub || filterTeam || filterCategory || filterStatus) && (
-          <button onClick={clearFilters} className="lg:col-span-5 text-xs text-liga-green hover:underline text-right">
-            Limpiar filtros — mostrando {filtered.length} de {players.length} jugadores
-          </button>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">{filtered.length} de {players.length} jugadores</span>
+            <button onClick={clearFilters} className="text-xs text-liga-green hover:underline">Limpiar filtros</button>
+          </div>
         )}
       </div>
 
