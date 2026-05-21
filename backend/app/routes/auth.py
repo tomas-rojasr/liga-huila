@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.errors import auth_error
+from app.core.errors import api_error, auth_error
 from app.core.security import (
     MAX_FAILED_LOGIN_ATTEMPTS,
     ACCOUNT_LOCK_DURATION,
@@ -35,6 +35,9 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
 
     if user.locked_until and user.locked_until > now:
         raise auth_error("ACCOUNT_LOCKED", meta={"locked_until": user.locked_until.isoformat()})
+
+    if not body.password.strip():
+        raise api_error("PASSWORD_BLANK", status_code=400)
 
     if not verify_password(body.password, user.password_hash):
         attempts = int(user.failed_login_attempts or "0") + 1

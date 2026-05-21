@@ -2,11 +2,18 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class ClubCreate(BaseModel):
     name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
+        if not v or not v.strip():
+            raise ValueError("El nombre del club no puede estar vacío")
+        return v
     code: str
     address: Optional[str] = None
     phone: Optional[str] = None

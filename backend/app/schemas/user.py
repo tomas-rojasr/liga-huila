@@ -9,6 +9,13 @@ class UserCreate(BaseModel):
     email: EmailStr
     username: str
     password: str
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v):
+        if not v or not v.strip():
+            raise ValueError("El nombre de usuario no puede estar vacío")
+        return v
     first_name: str
     last_name: str
     role: str = "consulta"
