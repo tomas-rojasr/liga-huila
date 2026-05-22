@@ -110,7 +110,7 @@ def update_player(
         raise not_found_error("PLAYER")
 
     old = {"status": player.status, "team_id": str(player.team_id) if player.team_id else None}
-    data = body.model_dump(exclude_none=True)
+    data = body.model_dump(exclude_unset=True)
 
     if "birth_date" in data:
         data["category"] = calculate_category(data["birth_date"])
@@ -120,11 +120,13 @@ def update_player(
     db.commit()
     db.refresh(player)
 
+    audit_data = body.model_dump(mode="json", exclude_unset=True)
+
     create_audit_log(
         db, action="UPDATE", actor_id=current["user"].user_id,
         entity_type="PLAYER", entity_id=str(player_id),
         description=f"Jugador actualizado: {player.first_name} {player.last_name}",
-        old_values=old, new_values=data,
+        old_values=old, new_values=audit_data,
         actor_ip=get_client_ip(request),
     )
     return _player_to_response(player)

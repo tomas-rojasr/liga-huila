@@ -20,6 +20,7 @@ def get_dashboard(
     active_clubs = db.query(LfClub).filter(LfClub.is_deleted == False, LfClub.is_active == True).count()
     total_teams = db.query(LfTeam).filter(LfTeam.is_deleted == False).count()
     total_players = db.query(LfPlayer).filter(LfPlayer.is_deleted == False).count()
+    players_without_team = db.query(LfPlayer).filter(LfPlayer.is_deleted == False, LfPlayer.team_id == None).count()
     total_users = db.query(LfUser).filter(LfUser.is_deleted == False).count()
 
     players_by_category = (
@@ -42,6 +43,7 @@ def get_dashboard(
         "active_clubs": active_clubs,
         "total_teams": total_teams,
         "total_players": total_players,
+        "players_without_team": players_without_team,
         "total_users": total_users,
         "players_by_category": [{"category": cat, "count": cnt} for cat, cnt in category_counts],
     }

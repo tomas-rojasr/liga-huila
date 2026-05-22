@@ -1,5 +1,6 @@
-import { BarChart3, Building2, Shield, Users, Volleyball } from "lucide-react";
+import { BarChart3, Building2, RefreshCw, Shield, UserX, Users, Volleyball } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import { type DashboardStats, getDashboardService } from "../../services/liga/dashboard.service";
 
@@ -25,13 +26,17 @@ function StatCard({ label, value, icon, color }: StatCardProps) {
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
-  useEffect(() => {
+  const fetchStats = () => {
+    setLoading(true);
     getDashboardService()
       .then(setStats)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchStats(); }, [location.key]);
 
   if (loading) {
     return (
@@ -43,13 +48,23 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">Resumen general del sistema</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Resumen general del sistema</p>
+        </div>
+        <button
+          onClick={fetchStats}
+          disabled={loading}
+          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          Actualizar
+        </button>
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           label="Total Clubes"
           value={stats?.total_clubs ?? 0}
@@ -67,6 +82,12 @@ export default function DashboardPage() {
           value={stats?.total_players ?? 0}
           icon={<Volleyball className="w-6 h-6 text-white" />}
           color="bg-liga-gold"
+        />
+        <StatCard
+          label="Sin equipo"
+          value={stats?.players_without_team ?? 0}
+          icon={<UserX className="w-6 h-6 text-white" />}
+          color="bg-orange-500"
         />
         <StatCard
           label="Usuarios"

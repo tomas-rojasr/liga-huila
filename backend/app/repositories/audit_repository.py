@@ -33,11 +33,27 @@ def create_audit_log(
     return log
 
 
-def list_audit_logs(db: Session, skip: int = 0, limit: int = 100):
-    return (
-        db.query(LfAuditLog)
-        .order_by(LfAuditLog.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+def list_audit_logs(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    action: Optional[str] = None,
+    entity_type: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+):
+    from datetime import datetime, timezone
+    query = db.query(LfAuditLog)
+
+    if action:
+        query = query.filter(LfAuditLog.action == action.upper())
+    if entity_type:
+        query = query.filter(LfAuditLog.entity_type == entity_type.upper())
+    if date_from:
+        dt = datetime.fromisoformat(date_from).replace(tzinfo=timezone.utc)
+        query = query.filter(LfAuditLog.created_at >= dt)
+    if date_to:
+        dt = datetime.fromisoformat(date_to).replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+        query = query.filter(LfAuditLog.created_at <= dt)
+
+    return query.order_by(LfAuditLog.created_at.desc()).offset(skip).limit(limit).all()

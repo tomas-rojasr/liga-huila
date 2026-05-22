@@ -12,6 +12,22 @@ import {
 import { useAuthStore } from "../../store/auth.store";
 
 const CATEGORIES = ["SUB-8", "SUB-10", "SUB-12", "SUB-14", "SUB-16", "SUB-18", "SUB-20", "PRIMERA"];
+
+function calcCategory(birthDateStr: string): string {
+  if (!birthDateStr) return "";
+  const today = new Date();
+  const birth = new Date(birthDateStr);
+  let age = today.getFullYear() - birth.getFullYear();
+  if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+  if (age < 8) return "SUB-8";
+  if (age < 10) return "SUB-10";
+  if (age < 12) return "SUB-12";
+  if (age < 14) return "SUB-14";
+  if (age < 16) return "SUB-16";
+  if (age < 18) return "SUB-18";
+  if (age < 20) return "SUB-20";
+  return "PRIMERA";
+}
 const STATUSES = ["ACTIVO", "INACTIVO", "SUSPENDIDO", "TRANSFERIDO"];
 const DOC_TYPES = ["CC", "TI", "CE", "PASAPORTE"];
 const POSITIONS = ["Portero", "Defensa", "Mediocampista", "Delantero"];
@@ -47,6 +63,8 @@ export default function PlayersPage() {
   const [filterTeam, setFilterTeam] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const clubs = useMemo(() => {
     const seen = new Set<string>();
@@ -72,13 +90,25 @@ export default function PlayersPage() {
     });
   }, [players, search, filterClub, filterTeam, filterCategory, filterStatus, teamsByClub]);
 
-  const clearFilters = () => { setSearch(""); setFilterClub(""); setFilterTeam(""); setFilterCategory(""); setFilterStatus(""); };
+  useEffect(() => { setPage(1); }, [search, filterClub, filterTeam, filterCategory, filterStatus]);
 
-  const load = () =>
-    Promise.all([getPlayersService(), getTeamsService()])
-      .then(([p, t]) => { setPlayers(p); setTeams(t); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = useMemo(() => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [filtered, page]);
+
+  const clearFilters = () => { setSearch(""); setFilterClub(""); setFilterTeam(""); setFilterCategory(""); setFilterStatus(""); setPage(1); };
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [p, t] = await Promise.all([getPlayersService(), getTeamsService()]);
+      setPlayers(p);
+      setTeams(t);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => { load(); }, []);
 
@@ -98,15 +128,18 @@ export default function PlayersPage() {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const payload = { ...form, team_id: form.team_id || undefined, position: form.position || undefined, photo_url: form.photo_url || undefined };
+    const payload = { ...form, team_id: form.team_id || null, position: form.position || null, photo_url: form.photo_url || null };
     try {
       if (editing) await updatePlayerService(editing.player_id, payload);
       else await createPlayerService(payload);
       setShowModal(false);
-      load();
+      setPage(1);
+      await load();
     } catch (err: any) {
       const code = err?.response?.data?.detail?.code;
-      setError(code === "DOCUMENT_NUMBER_ALREADY_EXISTS" ? "El número de documento ya está registrado" : "Error al guardar");
+      if (code === "DOCUMENT_NUMBER_ALREADY_EXISTS") setError("El número de documento ya está registrado");
+      else if (code === "PLAYER_NOT_FOUND") setError("Jugador no encontrado");
+      else setError(`Error al guardar${code ? `: ${code}` : ""}`);
     } finally {
       setSaving(false);
     }
@@ -191,12 +224,12 @@ export default function PlayersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {filtered.length === 0 && (
+              {paginated.length === 0 && (
                 <tr><td colSpan={6} className="text-center py-10 text-gray-400">
                   {players.length === 0 ? "Sin jugadores registrados" : "No se encontraron jugadores con los filtros aplicados"}
                 </td></tr>
               )}
-              {filtered.map((player) => (
+              {paginated.map((player) => (
                 <tr key={player.player_id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -225,8 +258,8 @@ export default function PlayersPage() {
                   {canEdit && (
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => openEdit(player)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-gray-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(player.player_id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => openEdit(player)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-gray-400 dark:text-gray-200 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(player.player_id)} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-400 dark:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   )}
@@ -234,7 +267,54 @@ export default function PlayersPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} de {filtered.length} jugadores
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-200 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                ← Anterior
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                .reduce<(number | "...")[]>((acc, p, i, arr) => {
+                  if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((item, i) =>
+                  item === "..." ? (
+                    <span key={`ellipsis-${i}`} className="px-2 text-gray-400">…</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setPage(item as number)}
+                      className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                        page === item
+                          ? "bg-liga-green text-white border-liga-green"
+                          : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-200 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Siguiente →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
       )}
 
       {showModal && (
@@ -297,12 +377,34 @@ export default function PlayersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Equipo</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Equipo</label>
+                  {(() => {
+                    const cat = editing ? editing.category : calcCategory(form.birth_date);
+                    return cat ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-liga-green/10 text-liga-green font-medium">
+                        Categoría: {cat}
+                      </span>
+                    ) : null;
+                  })()}
+                </div>
                 <select value={form.team_id} onChange={(e) => setForm((f) => ({ ...f, team_id: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
                   <option value="">Sin equipo asignado</option>
-                  {teams.filter((t) => t.is_active).map((t) => <option key={t.team_id} value={t.team_id}>{t.name} ({t.category})</option>)}
+                  {teams
+                    .filter((t) => {
+                      const cat = editing ? editing.category : calcCategory(form.birth_date);
+                      return t.is_active && (!cat || t.category === cat);
+                    })
+                    .map((t) => <option key={t.team_id} value={t.team_id}>{t.name}</option>)}
                 </select>
+                {(() => {
+                  const cat = editing ? editing.category : calcCategory(form.birth_date);
+                  const count = teams.filter((t) => t.is_active && t.category === cat).length;
+                  return cat && count === 0 ? (
+                    <p className="text-xs text-amber-500 mt-1">No hay equipos activos para la categoría {cat}</p>
+                  ) : null;
+                })()}
               </div>
 
               <div className="flex gap-3 justify-end pt-2">

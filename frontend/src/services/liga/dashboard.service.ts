@@ -5,6 +5,7 @@ export interface DashboardStats {
   active_clubs: number;
   total_teams: number;
   total_players: number;
+  players_without_team: number;
   total_users: number;
   players_by_category: { category: string; count: number }[];
 }
