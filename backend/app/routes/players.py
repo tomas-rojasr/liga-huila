@@ -2,12 +2,14 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
+from sqlalchemy import func, outerjoin
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.errors import api_error, not_found_error
 from app.dependencies.auth import admin_or_superadmin, get_client_ip, get_current_user
 from app.models.lf_player import LfPlayer
+from app.models.lf_team import LfTeam
 from app.repositories.audit_repository import create_audit_log
 from app.schemas.player import PlayerCreate, PlayerResponse, PlayerUpdate
 from app.services.category_service import calculate_category
@@ -37,21 +39,46 @@ def _player_to_response(player: LfPlayer) -> dict:
 @router.get("", response_model=List[PlayerResponse])
 def list_players(
     skip: int = 0,
+    limit: int = 500,
     team_id: UUID = None,
     category: str = None,
     status: str = None,
     db: Session = Depends(get_db),
     current: dict = Depends(get_current_user),
 ):
-    q = db.query(LfPlayer).filter(LfPlayer.is_deleted == False)
+    q = (
+        db.query(LfPlayer, LfTeam.name.label("team_name"))
+        .outerjoin(LfTeam, LfPlayer.team_id == LfTeam.team_id)
+        .filter(LfPlayer.is_deleted == False)
+    )
     if team_id:
         q = q.filter(LfPlayer.team_id == team_id)
     if category:
         q = q.filter(LfPlayer.category == category)
     if status:
         q = q.filter(LfPlayer.status == status)
-    players = q.order_by(LfPlayer.created_at.desc()).offset(skip).all()
-    return [_player_to_response(p) for p in players]
+
+    rows = q.order_by(LfPlayer.created_at.desc()).offset(skip).limit(limit).all()
+
+    return [
+        {
+            "player_id": p.player_id,
+            "team_id": p.team_id,
+            "first_name": p.first_name,
+            "last_name": p.last_name,
+            "birth_date": p.birth_date,
+            "category": p.category,
+            "document_type": p.document_type,
+            "document_number": p.document_number,
+            "nationality": p.nationality,
+            "position": p.position,
+            "photo_url": p.photo_url,
+            "status": p.status,
+            "created_at": p.created_at,
+            "team_name": team_name,
+        }
+        for p, team_name in rows
+    ]
 
 
 @router.post("", response_model=PlayerResponse)
