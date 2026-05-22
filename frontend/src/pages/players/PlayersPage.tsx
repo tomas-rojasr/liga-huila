@@ -1,6 +1,7 @@
-import { Edit2, Plus, Search, Trash2, Volleyball } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Edit2, Plus, Search, Trash2, Upload, Volleyball } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { env } from "../../config/env";
 import { type Team, getTeamsService } from "../../services/liga/teams.service";
 import {
   type Player,
@@ -8,6 +9,7 @@ import {
   deletePlayerService,
   getPlayersService,
   updatePlayerService,
+  uploadPlayerPhotoService,
 } from "../../services/liga/players.service";
 import { useAuthStore } from "../../store/auth.store";
 
@@ -57,6 +59,10 @@ export default function PlayersPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [filterClub, setFilterClub] = useState("");
@@ -112,7 +118,7 @@ export default function PlayersPage() {
 
   useEffect(() => { load(); }, []);
 
-  const openCreate = () => { setEditing(null); setForm(emptyForm); setError(null); setShowModal(true); };
+  const openCreate = () => { setEditing(null); setForm(emptyForm); setPhotoPreview(null); setError(null); setShowModal(true); };
   const openEdit = (p: Player) => {
     setEditing(p);
     setForm({
@@ -120,8 +126,25 @@ export default function PlayersPage() {
       birth_date: p.birth_date, document_type: p.document_type, document_number: p.document_number,
       nationality: p.nationality, position: p.position ?? "", photo_url: p.photo_url ?? "", status: p.status,
     });
+    setPhotoPreview(p.photo_url ? `${env.VITE_API_URL}${p.photo_url}` : null);
     setError(null);
     setShowModal(true);
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoPreview(URL.createObjectURL(file));
+    setUploadingPhoto(true);
+    try {
+      const url = await uploadPlayerPhotoService(file);
+      setForm((f) => ({ ...f, photo_url: url }));
+    } catch {
+      setError("Error al subir la foto. Intente de nuevo.");
+      setPhotoPreview(form.photo_url ? `${env.VITE_API_URL}${form.photo_url}` : null);
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -233,8 +256,11 @@ export default function PlayersPage() {
                 <tr key={player.player_id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-liga-gold/10 flex items-center justify-center">
-                        <Volleyball className="w-4 h-4 text-liga-gold" />
+                      <div className="w-8 h-8 rounded-full bg-liga-gold/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {player.photo_url
+                          ? <img src={`${env.VITE_API_URL}${player.photo_url}`} alt="" className="w-full h-full object-cover" />
+                          : <Volleyball className="w-4 h-4 text-liga-gold" />
+                        }
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white">{player.first_name} {player.last_name}</p>
@@ -407,9 +433,35 @@ export default function PlayersPage() {
                 })()}
               </div>
 
+              {/* Foto */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fotografía</label>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-700 flex-shrink-0">
+                    {photoPreview
+                      ? <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
+                      : <Volleyball className="w-6 h-6 text-gray-400" />
+                    }
+                  </div>
+                  <div className="flex-1">
+                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoChange} />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingPhoto}
+                      className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors disabled:opacity-50"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {uploadingPhoto ? "Subiendo..." : "Seleccionar foto"}
+                    </button>
+                    <p className="text-xs text-gray-400 mt-1">JPG, PNG o WebP — máx. 5 MB</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex gap-3 justify-end pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancelar</button>
-                <button type="submit" disabled={saving} className="px-4 py-2 text-sm bg-liga-green hover:bg-liga-green-dark disabled:opacity-60 text-white rounded-lg font-medium transition-colors">
+                <button type="submit" disabled={saving || uploadingPhoto} className="px-4 py-2 text-sm bg-liga-green hover:bg-liga-green-dark disabled:opacity-60 text-white rounded-lg font-medium transition-colors">
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>

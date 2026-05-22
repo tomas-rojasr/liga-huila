@@ -40,3 +40,12 @@ export async function updatePlayerService(id: string, payload: Partial<Player>):
 export async function deletePlayerService(id: string): Promise<void> {
   await api.delete(`/players/${id}`);
 }
+
+export async function uploadPlayerPhotoService(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const { data } = await api.post<{ photo_url: string }>("/upload/photo", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data.photo_url;
+}

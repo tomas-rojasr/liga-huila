@@ -1,11 +1,16 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.database import import_models
-from app.routes import auth, audit, clubs, dashboard, players, teams, users
+from app.routes import auth, audit, clubs, dashboard, players, teams, upload, users
 
 import_models()
+
+os.makedirs("uploads/players", exist_ok=True)
 
 app = FastAPI(
     title="API Liga de Fútbol del Huila",
@@ -34,6 +39,9 @@ app.include_router(teams.router)
 app.include_router(players.router)
 app.include_router(audit.router)
 app.include_router(dashboard.router)
+app.include_router(upload.router)
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.get("/health")
