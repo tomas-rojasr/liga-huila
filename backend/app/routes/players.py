@@ -38,8 +38,6 @@ def _player_to_response(player: LfPlayer) -> dict:
 
 @router.get("", response_model=List[PlayerResponse])
 def list_players(
-    skip: int = 0,
-    limit: int = 500,
     team_id: UUID = None,
     category: str = None,
     status: str = None,
@@ -58,7 +56,7 @@ def list_players(
     if status:
         q = q.filter(LfPlayer.status == status)
 
-    rows = q.order_by(LfPlayer.created_at.desc()).offset(skip).limit(limit).all()
+    rows = q.order_by(LfPlayer.created_at.desc()).all()
 
     return [
         {
