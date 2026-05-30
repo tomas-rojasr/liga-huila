@@ -21,14 +21,14 @@ function calcCategory(birthDateStr: string): string {
   const birth = new Date(birthDateStr);
   let age = today.getFullYear() - birth.getFullYear();
   if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
-  if (age < 8) return "SUB-8";
-  if (age < 10) return "SUB-10";
-  if (age < 12) return "SUB-12";
-  if (age < 14) return "SUB-14";
-  if (age < 16) return "SUB-16";
-  if (age < 18) return "SUB-18";
-  if (age < 20) return "SUB-20";
-  return "PRIMERA";
+  if (age <= 7) return "Mini Infantil 7";
+  if (age === 8) return "Mini Infantil 8";
+  if (age === 9) return "Mini Infantil 9";
+  if (age === 10) return "Preinfantil";
+  if (age <= 13) return "Transición";
+  if (age === 14) return "Prejuvenil";
+  if (age <= 17) return "Juvenil";
+  return "Mayores";
 }
 const STATUSES = ["ACTIVO", "INACTIVO", "SUSPENDIDO", "TRANSFERIDO"];
 const DOC_TYPES = ["CC", "TI", "CE", "PASAPORTE"];
@@ -428,7 +428,7 @@ export default function PlayersPage() {
                   <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-700 flex-shrink-0">
                     {photoPreview
                       ? <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
-                      : <Volleyball className="w-6 h-6 text-gray-400" />
+                      : <PersonStanding className="w-6 h-6 text-gray-400" />
                     }
                   </div>
                   <div className="flex-1">
