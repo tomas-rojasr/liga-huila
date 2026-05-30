@@ -55,18 +55,18 @@ export default function LoginPage() {
           <div className="w-52 h-52 rounded-full bg-white shadow-2xl flex items-center justify-center mb-8 overflow-hidden">
             <img
               src="/logo-liga.png"
-              alt="Liga de Fútbol del Huila"
+              alt="Liga de Patinaje del Huila"
               className="w-full h-full object-contain p-2"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = "none";
                 (e.target as HTMLImageElement).parentElement!.innerHTML =
-                  `<span class="text-5xl font-black text-[#1a5c2a]">LFH</span>`;
+                  `<span class="text-5xl font-black text-[#1a5c2a]">LPH</span>`;
               }}
             />
           </div>
 
           <h1 className="text-white text-3xl font-black tracking-tight leading-tight mb-2">
-            LIGA DE FÚTBOL
+            LIGA DE PATINAJE
           </h1>
           <h2 className="text-white text-3xl font-black tracking-tight leading-tight mb-4">
             DEL HUILA
@@ -75,7 +75,7 @@ export default function LoginPage() {
           <div className="flex items-center gap-2 mb-6">
             <div className="h-px w-10 bg-white/40" />
             <p className="text-white/70 text-sm tracking-widest uppercase font-medium">
-              Futsal · Fútbol · Playa
+              Velocidad · Patinaje · Huila
             </p>
             <div className="h-px w-10 bg-white/40" />
           </div>
@@ -88,7 +88,7 @@ export default function LoginPage() {
 
         {/* Footer izquierdo */}
         <p className="absolute bottom-6 text-white/30 text-xs">
-          © {new Date().getFullYear()} Liga de Fútbol del Huila
+          © {new Date().getFullYear()} Liga de Patinaje del Huila
         </p>
       </div>
 
@@ -100,14 +100,14 @@ export default function LoginPage() {
           <div className="w-20 h-20 rounded-full bg-[#1a5c2a] flex items-center justify-center mb-3 overflow-hidden shadow-lg">
             <img
               src="/logo-liga.png"
-              alt="Liga de Fútbol del Huila"
+              alt="Liga de Patinaje del Huila"
               className="w-full h-full object-contain p-1"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = "none";
               }}
             />
           </div>
-          <p className="text-[#1a5c2a] font-bold text-lg">Liga de Fútbol del Huila</p>
+          <p className="text-[#1a5c2a] font-bold text-lg">Liga de Patinaje del Huila</p>
         </div>
 
         <div className="w-full max-w-md">
@@ -181,7 +181,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-xs text-gray-400 mt-8">
-            Liga de Fútbol del Huila — Sistema administrativo interno
+            Liga de Patinaje del Huila — Sistema administrativo interno
           </p>
         </div>
       </div>

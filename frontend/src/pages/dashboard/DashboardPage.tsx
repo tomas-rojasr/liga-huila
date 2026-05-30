@@ -1,4 +1,4 @@
-import { BarChart3, Building2, RefreshCw, Shield, UserX, Users, Volleyball } from "lucide-react";
+import { BarChart3, Building2, PersonStanding, RefreshCw, Shield, UserX, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -78,9 +78,9 @@ export default function DashboardPage() {
           color="bg-blue-500"
         />
         <StatCard
-          label="Total Jugadores"
+          label="Total Patinadores"
           value={stats?.total_players ?? 0}
-          icon={<Volleyball className="w-6 h-6 text-white" />}
+          icon={<PersonStanding className="w-6 h-6 text-white" />}
           color="bg-liga-gold"
         />
         <StatCard

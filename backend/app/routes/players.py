@@ -103,7 +103,7 @@ def create_player(
     create_audit_log(
         db, action="CREATE", actor_id=current["user"].user_id,
         entity_type="PLAYER", entity_id=str(player.player_id),
-        description=f"Jugador creado: {player.first_name} {player.last_name}",
+        description=f"Patinador creado: {player.first_name} {player.last_name}",
         actor_ip=get_client_ip(request),
     )
     return _player_to_response(player)
@@ -149,7 +149,7 @@ def update_player(
     create_audit_log(
         db, action="UPDATE", actor_id=current["user"].user_id,
         entity_type="PLAYER", entity_id=str(player_id),
-        description=f"Jugador actualizado: {player.first_name} {player.last_name}",
+        description=f"Patinador actualizado: {player.first_name} {player.last_name}",
         old_values=old, new_values=audit_data,
         actor_ip=get_client_ip(request),
     )
@@ -173,7 +173,7 @@ def delete_player(
     create_audit_log(
         db, action="DELETE", actor_id=current["user"].user_id,
         entity_type="PLAYER", entity_id=str(player_id),
-        description=f"Jugador eliminado: {player.first_name} {player.last_name}",
+        description=f"Patinador eliminado: {player.first_name} {player.last_name}",
         actor_ip=get_client_ip(request),
     )
     return {"message": "Jugador eliminado correctamente"}

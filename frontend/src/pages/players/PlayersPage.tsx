@@ -1,4 +1,4 @@
-import { Edit2, Plus, Search, Trash2, Upload, Volleyball } from "lucide-react";
+import { Edit2, PersonStanding, Plus, Search, Trash2, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { env } from "../../config/env";
@@ -13,7 +13,7 @@ import {
 } from "../../services/liga/players.service";
 import { useAuthStore } from "../../store/auth.store";
 
-const CATEGORIES = ["SUB-8", "SUB-10", "SUB-12", "SUB-14", "SUB-16", "SUB-18", "SUB-20", "PRIMERA"];
+const CATEGORIES = ["Mini Infantil 7", "Mini Infantil 8", "Mini Infantil 9", "Preinfantil", "Transición", "Prejuvenil", "Juvenil", "Mayores"];
 
 function calcCategory(birthDateStr: string): string {
   if (!birthDateStr) return "";
@@ -32,12 +32,11 @@ function calcCategory(birthDateStr: string): string {
 }
 const STATUSES = ["ACTIVO", "INACTIVO", "SUSPENDIDO", "TRANSFERIDO"];
 const DOC_TYPES = ["CC", "TI", "CE", "PASAPORTE"];
-const POSITIONS = ["Portero", "Defensa", "Mediocampista", "Delantero"];
 
 const emptyForm = {
   team_id: "", first_name: "", last_name: "", birth_date: "",
   document_type: "CC", document_number: "", nationality: "Colombiana",
-  position: "", photo_url: "", status: "ACTIVO",
+  photo_url: "", status: "ACTIVO",
 };
 
 const statusColors: Record<string, string> = {
@@ -124,7 +123,7 @@ export default function PlayersPage() {
     setForm({
       team_id: p.team_id ?? "", first_name: p.first_name, last_name: p.last_name,
       birth_date: p.birth_date, document_type: p.document_type, document_number: p.document_number,
-      nationality: p.nationality, position: p.position ?? "", photo_url: p.photo_url ?? "", status: p.status,
+      nationality: p.nationality, photo_url: p.photo_url ?? "", status: p.status,
     });
     setPhotoPreview(p.photo_url ? `${env.VITE_API_URL}${p.photo_url}` : null);
     setError(null);
@@ -151,7 +150,7 @@ export default function PlayersPage() {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const payload = { ...form, team_id: form.team_id || null, position: form.position || null, photo_url: form.photo_url || null };
+    const payload = { ...form, team_id: form.team_id || null, photo_url: form.photo_url || null };
     try {
       if (editing) await updatePlayerService(editing.player_id, payload);
       else await createPlayerService(payload);
@@ -161,7 +160,7 @@ export default function PlayersPage() {
     } catch (err: any) {
       const code = err?.response?.data?.detail?.code;
       if (code === "DOCUMENT_NUMBER_ALREADY_EXISTS") setError("El número de documento ya está registrado");
-      else if (code === "PLAYER_NOT_FOUND") setError("Jugador no encontrado");
+      else if (code === "PLAYER_NOT_FOUND") setError("Patinador no encontrado");
       else setError(`Error al guardar${code ? `: ${code}` : ""}`);
     } finally {
       setSaving(false);
@@ -169,7 +168,7 @@ export default function PlayersPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Eliminar este jugador?")) return;
+    if (!confirm("¿Eliminar este patinador?")) return;
     await deletePlayerService(id).then(load).catch(console.error);
   };
 
@@ -177,12 +176,12 @@ export default function PlayersPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Jugadores</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Registro y gestión de jugadores</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Patinadores</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Registro y gestión de patinadores</p>
         </div>
         {canEdit && (
           <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-liga-green hover:bg-liga-green-dark text-white rounded-lg text-sm font-medium transition-colors">
-            <Plus className="w-4 h-4" /> Nuevo jugador
+            <Plus className="w-4 h-4" /> Nuevo patinador
           </button>
         )}
       </div>
@@ -225,7 +224,7 @@ export default function PlayersPage() {
         </div>
         {(search || filterClub || filterTeam || filterCategory || filterStatus) && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-400">{filtered.length} de {players.length} jugadores</span>
+            <span className="text-xs text-gray-400">{filtered.length} de {players.length} patinadores</span>
             <button onClick={clearFilters} className="text-xs text-liga-green hover:underline">Limpiar filtros</button>
           </div>
         )}
@@ -238,7 +237,7 @@ export default function PlayersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Jugador</th>
+                <th className="px-4 py-3 text-left font-medium">Patinador</th>
                 <th className="px-4 py-3 text-left font-medium">Documento</th>
                 <th className="px-4 py-3 text-left font-medium">Categoría</th>
                 <th className="px-4 py-3 text-left font-medium">Equipo</th>
@@ -249,7 +248,7 @@ export default function PlayersPage() {
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {paginated.length === 0 && (
                 <tr><td colSpan={6} className="text-center py-10 text-gray-400">
-                  {players.length === 0 ? "Sin jugadores registrados" : "No se encontraron jugadores con los filtros aplicados"}
+                  {players.length === 0 ? "Sin patinadores registrados" : "No se encontraron patinadores con los filtros aplicados"}
                 </td></tr>
               )}
               {paginated.map((player) => (
@@ -259,12 +258,11 @@ export default function PlayersPage() {
                       <div className="w-8 h-8 rounded-full bg-liga-gold/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {player.photo_url
                           ? <img src={`${env.VITE_API_URL}${player.photo_url}`} alt="" className="w-full h-full object-cover" />
-                          : <Volleyball className="w-4 h-4 text-liga-gold" />
+                          : <PersonStanding className="w-4 h-4 text-liga-gold" />
                         }
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white">{player.first_name} {player.last_name}</p>
-                        {player.position && <p className="text-xs text-gray-400">{player.position}</p>}
                       </div>
                     </div>
                   </td>
@@ -347,7 +345,7 @@ export default function PlayersPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
-              <h2 className="font-semibold text-gray-900 dark:text-white">{editing ? "Editar jugador" : "Nuevo jugador"}</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-white">{editing ? "Editar patinador" : "Nuevo patinador"}</h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
@@ -384,22 +382,12 @@ export default function PlayersPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Posición</label>
-                  <select value={form.position} onChange={(e) => setForm((f) => ({ ...f, position: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
-                    <option value="">Sin asignar</option>
-                    {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
-                  <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
-                    {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
+                <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
+                  {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
 
               <div>

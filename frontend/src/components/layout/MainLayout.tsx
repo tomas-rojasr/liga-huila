@@ -4,11 +4,11 @@ import {
   ClipboardList,
   LogOut,
   Moon,
+  PersonStanding,
   Shield,
   Sun,
   Users,
   Users2,
-  Volleyball,
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ const navItems = [
   { to: "/dashboard", icon: BarChart3, label: "Dashboard" },
   { to: "/clubs", icon: Building2, label: "Clubes" },
   { to: "/teams", icon: Shield, label: "Equipos" },
-  { to: "/players", icon: Volleyball, label: "Jugadores" },
+  { to: "/players", icon: PersonStanding, label: "Patinadores" },
   { to: "/users", icon: Users, label: "Usuarios", adminOnly: true },
   { to: "/audit", icon: ClipboardList, label: "Auditoría", adminOnly: true },
 ];
@@ -57,12 +57,13 @@ export default function MainLayout() {
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-liga-green-light/30">
-          <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shrink-0">
-            <Volleyball className="w-5 h-5 text-liga-green" />
+          <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shrink-0 overflow-hidden">
+            <img src="/logo-liga.png" alt="LPH" className="w-full h-full object-contain p-0.5"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           </div>
           {sidebarOpen && (
             <div className="overflow-hidden">
-              <p className="text-white font-bold text-sm leading-tight">Liga Fútbol</p>
+              <p className="text-white font-bold text-sm leading-tight">Liga Patinaje</p>
               <p className="text-green-200 text-xs">del Huila</p>
             </div>
           )}
