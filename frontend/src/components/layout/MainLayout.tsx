@@ -3,12 +3,12 @@ import {
   Building2,
   ClipboardList,
   LogOut,
+  Menu,
   Moon,
   PersonStanding,
   Shield,
   Sun,
   Users,
-  Users2,
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
@@ -110,12 +110,12 @@ export default function MainLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="bg-white dark:bg-gray-800 shadow-sm px-6 py-3 flex items-center justify-between">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen((o) => !o)}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
           >
-            <Users2 className="w-5 h-5" />
+            <Menu className="w-5 h-5" />
           </button>
 
           <div className="flex items-center gap-3">

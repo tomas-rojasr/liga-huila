@@ -343,67 +343,73 @@ export default function PlayersPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg">
+            {/* Header */}
+            <div className="px-5 py-3.5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <h2 className="font-semibold text-gray-900 dark:text-white">{editing ? "Editar patinador" : "Nuevo patinador"}</h2>
+              <button type="button" onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">×</button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+              {error && <div className="p-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">{error}</div>}
+
+              {/* Fila 1: Nombre + Apellido */}
+              <div className="grid grid-cols-2 gap-3">
                 {[{ name: "first_name", label: "Nombre *", required: true }, { name: "last_name", label: "Apellido *", required: true }].map(({ name, label, required }) => (
                   <div key={name}>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{label}</label>
                     <input type="text" required={required} value={(form as any)[name]}
                       onChange={(e) => setForm((f) => ({ ...f, [name]: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm" />
+                      className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm" />
                   </div>
                 ))}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de nacimiento *</label>
-                <input type="date" required value={form.birth_date} onChange={(e) => setForm((f) => ({ ...f, birth_date: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm" />
+              {/* Fila 2: Fecha + Estado */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Fecha de nacimiento *</label>
+                  <input type="date" required value={form.birth_date} onChange={(e) => setForm((f) => ({ ...f, birth_date: e.target.value }))}
+                    className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Estado</label>
+                  <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+                    className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
+                    {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Fila 3: Tipo doc + Número doc */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo documento</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tipo documento</label>
                   <select value={form.document_type} onChange={(e) => setForm((f) => ({ ...f, document_type: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
+                    className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
                     {DOC_TYPES.map((d) => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número documento *</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Número documento *</label>
                   <input type="text" required value={form.document_number} onChange={(e) => setForm((f) => ({ ...f, document_number: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm" />
+                    className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm" />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
-                <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
-                  {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
+              {/* Equipo */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Equipo</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">Equipo</label>
                   {(() => {
                     const cat = editing ? editing.category : calcCategory(form.birth_date);
                     return cat ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-liga-green/10 text-liga-green font-medium">
-                        Categoría: {cat}
-                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-liga-green/10 text-liga-green font-medium">{cat}</span>
                     ) : null;
                   })()}
                 </div>
                 <select value={form.team_id} onChange={(e) => setForm((f) => ({ ...f, team_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
+                  className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-liga-green outline-none text-sm">
                   <option value="">Sin equipo asignado</option>
                   {teams
                     .filter((t) => {
@@ -416,39 +422,33 @@ export default function PlayersPage() {
                   const cat = editing ? editing.category : calcCategory(form.birth_date);
                   const count = teams.filter((t) => t.is_active && t.category === cat).length;
                   return cat && count === 0 ? (
-                    <p className="text-xs text-amber-500 mt-1">No hay equipos activos para la categoría {cat}</p>
+                    <p className="text-xs text-amber-500 mt-1">No hay equipos activos para {cat}</p>
                   ) : null;
                 })()}
               </div>
 
               {/* Foto */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fotografía</label>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-700 flex-shrink-0">
-                    {photoPreview
-                      ? <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
-                      : <PersonStanding className="w-6 h-6 text-gray-400" />
-                    }
-                  </div>
-                  <div className="flex-1">
-                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoChange} />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingPhoto}
-                      className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors disabled:opacity-50"
-                    >
-                      <Upload className="w-4 h-4" />
-                      {uploadingPhoto ? "Subiendo..." : "Seleccionar foto"}
-                    </button>
-                    <p className="text-xs text-gray-400 mt-1">JPG, PNG o WebP — máx. 5 MB</p>
-                  </div>
+              <div className="flex items-center gap-3 py-1">
+                <div className="w-12 h-12 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-700 flex-shrink-0">
+                  {photoPreview
+                    ? <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
+                    : <PersonStanding className="w-5 h-5 text-gray-400" />
+                  }
+                </div>
+                <div>
+                  <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoChange} />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingPhoto}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors disabled:opacity-50">
+                    <Upload className="w-3.5 h-3.5" />
+                    {uploadingPhoto ? "Subiendo..." : "Foto del patinador"}
+                  </button>
+                  <p className="text-xs text-gray-400 mt-0.5">JPG, PNG o WebP · máx. 5 MB</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 justify-end pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancelar</button>
+              {/* Botones */}
+              <div className="flex gap-3 justify-end pt-1 border-t border-gray-100 dark:border-gray-700">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancelar</button>
                 <button type="submit" disabled={saving || uploadingPhoto} className="px-4 py-2 text-sm bg-liga-green hover:bg-liga-green-dark disabled:opacity-60 text-white rounded-lg font-medium transition-colors">
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
