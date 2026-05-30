@@ -1,5 +1,6 @@
 import { Edit2, Plus, Shield, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { type Club, getClubsService } from "../../services/liga/clubs.service";
 import {
@@ -140,7 +141,7 @@ export default function TeamsPage() {
         </div>
       )}
 
-      {showModal && (
+      {showModal && createPortal(
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md">
             <div className="px-6 py-4 border-b dark:border-gray-700">
@@ -177,7 +178,7 @@ export default function TeamsPage() {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }
