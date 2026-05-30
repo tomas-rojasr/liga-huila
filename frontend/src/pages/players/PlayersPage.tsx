@@ -1,5 +1,6 @@
 import { Edit2, PersonStanding, Plus, Search, Trash2, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { env } from "../../config/env";
 import { type Team, getTeamsService } from "../../services/liga/teams.service";
@@ -341,7 +342,7 @@ export default function PlayersPage() {
       </div>
       )}
 
-      {showModal && (
+      {showModal && createPortal(
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg">
             {/* Header */}
@@ -456,7 +457,7 @@ export default function PlayersPage() {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }
